@@ -1,0 +1,174 @@
+﻿@page "/productBs"
+@rendermode InteractiveServer
+@using System.ComponentModel.DataAnnotations
+
+
+<PageTitle>Tienda de productBs</PageTitle>
+
+<h1>Tienda de productBs</h1>
+
+@if (showError)
+{
+    <div class="alert alert-danger" role="alert">
+        El número de inventario ya se encuentra registrado, debe ser único.
+    </div>
+}
+
+<div class="input-group mb-3">
+    <EditForm Model="@productB" FormName="productForm" OnValidSubmit="@ValidateProduct">
+        <DataAnnotationsValidator />
+
+        <div class="input-group-prepend">
+            <label for="idForm">Número de inventario:</label>
+        </div>
+        <InputNumber style="background-color: transparent; width: 200px;" class="form-control" @bind-Value="productB.Id" id="idForm" />
+        <ValidationMessage For="@(() => productB.Id)" />
+
+        <div class="input-group-prepend">
+            <label for="nombreForm">Nombre:</label>
+        </div>
+        <InputText style="background-color: transparent; width: 600px;" class="form-control" @bind-Value="productB.Name" id="nombreForm" />
+        <ValidationMessage For="@(() => productB.Name)" />
+
+        <label for="departamentoForm">Departamento:</label>
+        <div id="departamentoForm">
+            <InputRadioGroup @bind-Value="productB.Department">
+                <InputRadio Value="@("Frutas")"></InputRadio>Frutas
+                <InputRadio Value="@("Verduras")"></InputRadio>Verduras
+                <InputRadio Value="@("Lácteos")"></InputRadio>Lácteos
+            </InputRadioGroup>
+        </div>
+        <ValidationMessage For="()=>productB.Department"></ValidationMessage>
+
+        <br />
+<button type="submit" class="btn btn-primary" >Agregar</button>
+
+    </EditForm>
+</div>
+
+@if (showProducts)
+{
+    <button type="button" class="btn btn-secondary" @onclick="productChan">Existencias</button>
+}
+else
+{
+    <button type="button" class="btn btn-secondary" @onclick="productChan">Listado</button>
+}
+
+<br />
+
+<div style="margin-top: 20px;">
+    <div>
+        @if (showProducts)
+        {
+            <h4>productBs añadidos</h4>
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Número de inventario</th>
+                        <th>Nombre</th>
+                        <th>Departamento</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in productList)
+                    {
+                        <tr>
+                            <td>
+                                @item.Id
+                            </td>
+                            <td>
+                                @item.Name
+                            </td>
+                            <td>
+                                @item.Department
+                            </td>
+                            <td>
+                                <button type="button" @onclick="(e) => DeleteProduct(item.Id)"><i >Eliminar</i></button>
+                               
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <h4>Conteo de productBs por departamento</h4>
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Frutas</th>
+                        <th>Verduras</th>
+                        <th>Lácteos</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>@FruitCount()</td>
+                        <td>@VegetableCount()</td>
+                        <td>@DairyCount()</td>
+                    </tr>
+                </tbody>
+            </table>
+        }
+    </div>
+</div>
+
+@code {
+    private List<Product> productList = new List<Product>();
+    private Product productB = new Product(0, "", "");
+
+    private bool showError = false;
+    private bool showProducts = true;
+   
+    
+
+    private void AddProduct()
+    {
+        if (IsIdExists(productB.Id))
+        {
+            showError = true;
+            return;
+        }
+
+        showError = false;
+        productList.Add(new Product(productB.Id, productB.Name, productB.Department));
+    }
+
+    private void DeleteProduct(int id)
+    {
+        showError = false;
+        productList.RemoveAll(x => x.Id == id);
+    }
+
+    private void ValidateProduct()
+    {
+        if (!IsIdExists(productB.Id))
+        {
+            AddProduct();
+        }
+        else
+        {
+            showError = true;
+        }
+    }
+
+
+    private bool IsIdExists(int id)
+    {
+        return productList.Exists(x => x.Id == id);
+    }
+
+    private int FruitCount() => productList.Count(x => x.Department == "Frutas");
+    private int VegetableCount() => productList.Count(x => x.Department == "Verduras");
+    private int DairyCount() => productList.Count(x => x.Department == "Lacteos");
+
+    private void productChan()
+    {
+        showProducts = !showProducts;
+    }
+}
+
+                
